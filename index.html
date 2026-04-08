@@ -1170,47 +1170,102 @@ async function startScanner() {
     viewport.style.display = 'block';
     startBtn.style.display = 'none';
     stopBtn.style.display = 'block';
-    statusEl.textContent = 'Scanning... point at a barcode';
-    if ('BarcodeDetector' in window) {
-      const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'] });
-      scanInterval = setInterval(async () => {
-        try {
-          const codes = await detector.detect(video);
-          if (codes.length > 0) {
-            await handleBarcode(codes[0].rawValue);
-          }
-        } catch {}
-      }, 400);
-    } else {
-      statusEl.textContent = 'Camera active — tap "Scan Frame" to read barcode';
-      startBtn.style.display = 'block';
-      startBtn.textContent = 'Scan Frame';
-      startBtn.onclick = captureFrame;
-    }
+    statusEl.textContent = 'Scanning... point camera at barcode';
+    _startZXingLoop();
   } catch(e) {
-    statusEl.textContent = 'Camera access denied. Please allow camera in Safari settings.';
+    statusEl.textContent = 'Camera access denied — allow camera in Safari settings.';
   }
 }
 
-async function captureFrame() {
+function _startZXingLoop() {
   const video = document.getElementById('scan-video');
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  let active = true;
+
+  const tick = () => {
+    if (!active || !scanStream) return;
+    if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      try {
+        const code = window._zxingReader.decodeFromImageData(imageData);
+        if (code && code.getText()) {
+          active = false;
+          handleBarcode(code.getText());
+          return;
+        }
+      } catch(e) {}
+    }
+    scanInterval = setTimeout(tick, 350);
+  };
+
+  if (window._zxingReader) {
+    tick();
+  } else {
+    document.getElementById('scan-status').textContent = 'Loading scanner library...';
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';
+    script.onload = () => {
+      try {
+        window._zxingReader = new ZXing.MultiFormatReader();
+        const hints = new Map();
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+          ZXing.BarcodeFormat.EAN_13,
+          ZXing.BarcodeFormat.EAN_8,
+          ZXing.BarcodeFormat.UPC_A,
+          ZXing.BarcodeFormat.UPC_E,
+          ZXing.BarcodeFormat.CODE_128,
+          ZXing.BarcodeFormat.CODE_39,
+        ]);
+        window._zxingReader.setHints(hints);
+        document.getElementById('scan-status').textContent = 'Scanning... point camera at barcode';
+        tick();
+      } catch(e) {
+        document.getElementById('scan-status').textContent = 'Scanner failed to load — try Scan Frame button';
+        const startBtn = document.getElementById('scan-start-btn');
+        startBtn.style.display = 'block';
+        startBtn.textContent = 'Scan Frame';
+        startBtn.onclick = captureFrameFallback;
+      }
+    };
+    script.onerror = () => {
+      document.getElementById('scan-status').textContent = 'Tap "Scan Frame" to read barcode';
+      const startBtn = document.getElementById('scan-start-btn');
+      startBtn.style.display = 'block';
+      startBtn.textContent = 'Scan Frame';
+      startBtn.onclick = captureFrameFallback;
+    };
+    document.head.appendChild(script);
+  }
+}
+
+async function captureFrameFallback() {
+  const video = document.getElementById('scan-video');
+  const statusEl = document.getElementById('scan-status');
+  if (!video || !video.videoWidth) { statusEl.textContent = 'Start camera first'; return; }
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0);
-  if ('BarcodeDetector' in window) {
+  statusEl.textContent = 'Reading barcode...';
+  if (window._zxingReader) {
     try {
-      const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'] });
-      const codes = await detector.detect(canvas);
-      if (codes.length > 0) { await handleBarcode(codes[0].rawValue); }
-      else { document.getElementById('scan-status').textContent = 'No barcode detected — try again'; }
-    } catch { document.getElementById('scan-status').textContent = 'Could not read barcode — try again'; }
+      const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+      const code = window._zxingReader.decodeFromImageData(imageData);
+      if (code) { await handleBarcode(code.getText()); return; }
+    } catch(e) {}
   }
+  statusEl.textContent = 'No barcode found — hold steady and try again';
 }
+
+async function captureFrame() { captureFrameFallback(); }
 
 function stopScanner() {
   if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
-  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+  if (scanInterval) { clearTimeout(scanInterval); scanInterval = null; }
   const viewport = document.getElementById('scan-viewport');
   const startBtn = document.getElementById('scan-start-btn');
   const stopBtn = document.getElementById('scan-stop-btn');
