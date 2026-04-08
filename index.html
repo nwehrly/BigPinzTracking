@@ -75,7 +75,7 @@ input[type="date"].topbar-date::-webkit-calendar-picker-indicator { filter: inve
 .screen.active { display: block; }
 
 /* SCORE PILLS */
-.pill-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-bottom: 14px; }
+.pill-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-bottom: 14px; justify-content: center; flex-wrap: wrap; }
 .pill-row::-webkit-scrollbar { display: none; }
 .pill { flex-shrink: 0; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-bottom-color: var(--glass-border2); border-right-color: var(--glass-border2); box-shadow: inset 0 1px 0 var(--glass-inset); border-radius: 22px; padding: 8px 14px; text-align: center; min-width: 60px; }
 .pill-num { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.1; }
@@ -130,8 +130,8 @@ input[type="date"].topbar-date::-webkit-calendar-picker-indicator { filter: inve
 
 /* HYDRATION */
 .drop-row { display: flex; gap: 6px; flex-wrap: wrap; }
-.glass { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--glass-border); border-bottom-color: var(--glass-border2); border-right-color: var(--glass-border2); box-shadow: inset 0 1px 0 var(--glass-inset); background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; transition: all 0.2s; }
-.glass.filled { background: rgba(255,255,255,0.14); border-color: var(--accent); }
+.glass { width: 28px; height: 28px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: all 0.2s; opacity: 0.45; }
+.glass.filled { background: rgba(90,185,255,0.7); border-color: rgba(180,230,255,0.95); opacity: 1; box-shadow: 0 0 10px rgba(90,185,255,0.35); }
 
 /* MEAL CARDS */
 .meal-card { background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); border-bottom-color: var(--glass-border2); border-right-color: var(--glass-border2); box-shadow: inset 0 1px 0 var(--glass-inset); padding: 16px 18px; margin-bottom: 8px; }
@@ -311,17 +311,6 @@ input[type="date"].topbar-date::-webkit-calendar-picker-indicator { filter: inve
         </div>
       </div>
 
-      <!-- Fiber row -->
-      <div class="card" style="margin-bottom:12px; padding:12px 16px;">
-        <div class="flex-between">
-          <div style="font-size:13px; color:var(--accent); font-family:'DM Mono',monospace; text-transform:uppercase; letter-spacing:0.07em;">Fiber</div>
-          <div style="font-size:12px; color:var(--text2); font-family:'DM Mono',monospace;" id="fiber-val">0 / 35g</div>
-        </div>
-        <div style="height:3px; background:rgba(255,255,255,0.12); border-radius:3px; margin-top:8px; overflow:hidden;">
-          <div id="fiber-bar" style="height:3px; border-radius:3px; background:rgba(255,255,255,0.5); width:0%; transition:width 0.6s ease;"></div>
-        </div>
-      </div>
-
       <!-- Insight card -->
       <div class="insight-card" id="insight-card">
         <div class="insight-badge">Insight</div>
@@ -475,7 +464,6 @@ input[type="date"].topbar-date::-webkit-calendar-picker-indicator { filter: inve
     <div class="modal-title" id="modal-meal-title">Add food</div>
     <div class="tab-row" style="flex-wrap:wrap; gap:6px;">
       <button class="tab-btn active" id="tab-search-btn" onclick="switchTab('search')" style="flex:1;min-width:60px;">Search</button>
-      <button class="tab-btn inactive" id="tab-scan-btn" onclick="switchTab('scan')" style="flex:1;min-width:60px;">📷 Scan</button>
       <button class="tab-btn inactive" id="tab-fav-btn" onclick="switchTab('favorites')" style="flex:1;min-width:60px;">⭐ Favs</button>
       <button class="tab-btn inactive" id="tab-manual-btn" onclick="switchTab('manual')" style="flex:1;min-width:60px;">Manual</button>
     </div>
@@ -537,55 +525,6 @@ input[type="date"].topbar-date::-webkit-calendar-picker-indicator { filter: inve
       <div id="favorites-list"></div>
     </div>
 
-    <!-- SCAN TAB -->
-    <div id="tab-scan-content" style="display:none;">
-      <div style="text-align:center; margin-bottom:12px;">
-        <div style="font-size:11px; color:var(--text3); font-family:'DM Mono',monospace; margin-bottom:10px;">Point camera at a food product barcode</div>
-        <div id="scan-viewport" style="position:relative; width:100%; max-width:320px; margin:0 auto; border-radius:var(--radius-sm); overflow:hidden; background:rgba(0,0,0,0.5); display:none;">
-          <video id="scan-video" autoplay playsinline muted style="width:100%; display:block; border-radius:var(--radius-sm);"></video>
-          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
-            <div style="width:70%; height:50%; border:2px solid rgba(255,255,255,0.8); border-radius:8px; box-shadow:0 0 0 9999px rgba(0,0,0,0.35);"></div>
-          </div>
-        </div>
-        <div id="scan-status" style="font-size:13px; color:var(--text2); margin:10px 0; min-height:20px;"></div>
-        <button id="scan-start-btn" class="btn-primary" onclick="startScanner()" style="margin-bottom:8px;">Start Camera</button>
-        <button id="scan-stop-btn" class="btn-secondary" onclick="stopScanner()" style="display:none; margin-top:0;">Stop Camera</button>
-      </div>
-      <div id="scan-result-display" style="display:none;">
-        <div style="background:rgba(255,255,255,0.12); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:12px;">
-          <div class="flex-between">
-            <div style="flex:1;">
-              <div style="font-size:13px; color:var(--text); font-weight:600;" id="scan-name"></div>
-              <div style="font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; margin-top:3px;" id="scan-brand"></div>
-              <div style="font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; margin-top:2px;" id="scan-detail"></div>
-            </div>
-            <button onclick="clearScanResult()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:2px 4px;margin-left:8px;">×</button>
-          </div>
-        </div>
-        <label>Serving size</label>
-        <div style="display:flex; gap:8px; margin-bottom:10px;">
-          <input type="number" id="scan-serving-amount" value="1" min="0.1" step="0.1" style="flex:1;">
-          <select id="scan-serving-unit" style="flex:1; margin:0;">
-            <option value="serving">serving</option>
-            <option value="g">grams (g)</option>
-            <option value="oz">ounces (oz)</option>
-          </select>
-        </div>
-        <label>Meal timing (optional)</label>
-        <select id="scan-timing-tag" style="margin-bottom:14px;">
-          <option value="">None</option>
-          <option value="pre-workout">Pre-workout</option>
-          <option value="post-workout">Post-workout</option>
-          <option value="carb-load">Carb-load</option>
-          <option value="late-night">Late-night</option>
-        </select>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-primary" style="flex:1;" onclick="addScannedFood()">Add to meal</button>
-          <button class="btn-primary" style="flex:1;background:rgba(255,255,255,0.14);" onclick="saveScannedToFavorites()">⭐ Save</button>
-        </div>
-      </div>
-    </div>
-
     <!-- MANUAL TAB -->
     <div id="tab-manual-content" style="display:none;">
       <label>Food name</label>
@@ -615,6 +554,29 @@ input[type="date"].topbar-date::-webkit-calendar-picker-indicator { filter: inve
     </div>
 
     <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- EDIT FOOD MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="edit-modal-title">Edit food</div>
+    <div style="background:rgba(255,255,255,0.08); border-radius:var(--radius-sm); padding:10px 13px; margin-bottom:14px;">
+      <div style="font-size:13px; color:var(--text); font-weight:600;" id="edit-food-name"></div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+      <div><label>Calories (kcal)</label><input type="number" id="ef-cal" min="0"></div>
+      <div><label>Protein (g)</label><input type="number" id="ef-pro" min="0" step="0.1"></div>
+      <div><label>Carbs (g)</label><input type="number" id="ef-carbs" min="0" step="0.1"></div>
+      <div><label>Fat (g)</label><input type="number" id="ef-fat" min="0" step="0.1"></div>
+      <div><label>Sugar (g)</label><input type="number" id="ef-sugar" min="0" step="0.1"></div>
+      <div><label>Sodium (mg)</label><input type="number" id="ef-sodium" min="0"></div>
+      <div><label>Potassium (mg)</label><input type="number" id="ef-potassium" min="0"></div>
+      <div><label>Fiber (g)</label><input type="number" id="ef-fiber" min="0" step="0.1"></div>
+    </div>
+    <button class="btn-primary" onclick="saveEditedFood()" style="margin-bottom:8px;">Save changes</button>
+    <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
   </div>
 </div>
 
@@ -728,11 +690,6 @@ function renderTotals(day) {
   setTile('mt-fat','mb-fat','ms-fat', t.fat, 80, 'g', '');
   setTile('mt-sugar','mb-sugar','ms-sugar', t.sugar, 50, 'g', 'limit');
 
-  // Fiber
-  const fiberPct = Math.min(t.fiber/35*100,100);
-  document.getElementById('fiber-val').textContent = Math.round(t.fiber) + ' / 35g';
-  document.getElementById('fiber-bar').style.width = fiberPct + '%';
-
   // Electrolytes
   document.getElementById('m-sodium').textContent = Math.round(t.sodium) + ' mg';
   document.getElementById('m-potassium').textContent = Math.round(t.potassium) + ' mg';
@@ -779,12 +736,12 @@ function renderHydration(day) {
   document.getElementById('hydro-oz').textContent = water * 8;
   const badge = document.getElementById('hydro-badge');
   if (water === 0) { badge.textContent = 'Not started'; badge.style.color = 'var(--text3)'; }
-  else if (water < 6) { badge.textContent = 'In progress'; badge.style.color = 'var(--warn)'; }
-  else if (water < 8) { badge.textContent = 'Almost there'; badge.style.color = 'var(--accent)'; }
+  else if (water < 8) { badge.textContent = 'In progress'; badge.style.color = 'var(--warn)'; }
+  else if (water < 12) { badge.textContent = 'Almost there'; badge.style.color = 'var(--accent)'; }
   else { badge.textContent = 'Goal reached'; badge.style.color = 'var(--accent)'; }
   const cont = document.getElementById('hydro-glasses');
   cont.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 15; i++) {
     const g = document.createElement('div');
     g.className = 'glass' + (i < water ? ' filled' : '');
     g.textContent = '💧';
@@ -822,8 +779,9 @@ function renderMeals(day) {
           <div class="food-item-name">${f.name}</div>
           <div class="food-item-detail">${f.servingLabel||''} · ${Math.round(f.pro||0)}g P · ${Math.round(f.carbs||0)}g C · ${Math.round(f.fat||0)}g F</div>
         </div>
-        <div style="display:flex;align-items:center;">
+        <div style="display:flex;align-items:center;gap:2px;">
           <div class="food-item-kcal">${Math.round(f.cal||0)}</div>
+          <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:2px 5px;line-height:1;" onclick="openEditModal('${meal}',${i})" title="Edit">✎</button>
           <button class="food-item-del" onclick="deleteFood('${meal}',${i})">×</button>
         </div>
       </div>`).join('');
@@ -872,20 +830,17 @@ function openModal(meal) {
   clearManual();
   switchTab('search');
 }
-function closeModal() { stopScanner(); document.getElementById('food-modal').classList.remove('open'); }
+function closeModal() { document.getElementById('food-modal').classList.remove('open'); }
 document.getElementById('food-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
 function switchTab(tab) {
   document.getElementById('tab-search-content').style.display = tab === 'search' ? 'block' : 'none';
-  document.getElementById('tab-scan-content').style.display = tab === 'scan' ? 'block' : 'none';
   document.getElementById('tab-favorites-content').style.display = tab === 'favorites' ? 'block' : 'none';
   document.getElementById('tab-manual-content').style.display = tab === 'manual' ? 'block' : 'none';
   document.getElementById('tab-search-btn').className = 'tab-btn ' + (tab === 'search' ? 'active' : 'inactive');
-  document.getElementById('tab-scan-btn').className = 'tab-btn ' + (tab === 'scan' ? 'active' : 'inactive');
   document.getElementById('tab-fav-btn').className = 'tab-btn ' + (tab === 'favorites' ? 'active' : 'inactive');
   document.getElementById('tab-manual-btn').className = 'tab-btn ' + (tab === 'manual' ? 'active' : 'inactive');
   if (tab === 'favorites') renderFavoritesList();
-  if (tab !== 'scan') stopScanner();
 }
 
 // FAVORITES
@@ -1399,6 +1354,55 @@ function deleteFood(meal, idx) {
   renderAll();
   renderHistory();
 }
+
+let editContext = null;
+
+function openEditModal(meal, idx) {
+  const day = getDayData(currentDate);
+  const f = day.meals[meal][idx];
+  if (!f) return;
+  editContext = { meal, idx };
+  document.getElementById('edit-food-name').textContent = f.name;
+  document.getElementById('edit-modal-title').textContent = 'Edit · ' + meal;
+  document.getElementById('ef-cal').value = Math.round(f.cal||0);
+  document.getElementById('ef-pro').value = (f.pro||0).toFixed(1);
+  document.getElementById('ef-carbs').value = (f.carbs||0).toFixed(1);
+  document.getElementById('ef-fat').value = (f.fat||0).toFixed(1);
+  document.getElementById('ef-sugar').value = (f.sugar||0).toFixed(1);
+  document.getElementById('ef-sodium').value = Math.round(f.sodium||0);
+  document.getElementById('ef-potassium').value = Math.round(f.potassium||0);
+  document.getElementById('ef-fiber').value = (f.fiber||0).toFixed(1);
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+  editContext = null;
+  document.getElementById('edit-modal').classList.remove('open');
+}
+
+function saveEditedFood() {
+  if (!editContext) return;
+  const { meal, idx } = editContext;
+  const day = getDayData(currentDate);
+  const f = day.meals[meal][idx];
+  if (!f) return;
+  f.cal       = parseFloat(document.getElementById('ef-cal').value)       || 0;
+  f.pro       = parseFloat(document.getElementById('ef-pro').value)       || 0;
+  f.carbs     = parseFloat(document.getElementById('ef-carbs').value)     || 0;
+  f.fat       = parseFloat(document.getElementById('ef-fat').value)       || 0;
+  f.sugar     = parseFloat(document.getElementById('ef-sugar').value)     || 0;
+  f.sodium    = parseFloat(document.getElementById('ef-sodium').value)    || 0;
+  f.potassium = parseFloat(document.getElementById('ef-potassium').value) || 0;
+  f.fiber     = parseFloat(document.getElementById('ef-fiber').value)     || 0;
+  saveDayData(currentDate, day);
+  closeEditModal();
+  renderAll();
+  renderHistory();
+}
+
+document.getElementById('edit-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeEditModal();
+});
 
 function clearManual() {
   ['manual-name','manual-cal','manual-pro','manual-carbs','manual-fat',
